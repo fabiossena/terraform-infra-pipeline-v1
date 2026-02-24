@@ -43,20 +43,33 @@ jobs:
           role-to-assume: ${{ inputs.aws-assume-role-arn }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ inputs.aws-region }}
-          
+      
+      # - name: Read destroy configuration
+      #   id: read_destroy_configuration
+      #   run: |
+      #     DESTROY="$(jq -r '.{{ inputs.environment  }}' ./infra/destroy_config.json)"
+      #     echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
 
       - name: Terraform Init
         run: |
           cd infra && terraform init
+            -input=false \
             -backend-config="bucket=${{ inputs.aws-s3-bucket-statefile-s3-bucket }}" \
             -backend-config="key=${{ github.event.repository.name }}" \
-            -backend-config="region=${{ inputs.aws-region }}"
+            -backend-config="region=${{ inputs.aws-region }}" \
             -backend-config="dynamodb_table=${{ inputs.aws-lock-dynamodb-table }}"
 
       - name: Terraform Validate
         run: terraform validate
+      
+      # - name: Terraform Destroy
+      #   if: steps.read_destroy_configuration.outputs.destroy == 'true'
+      #   run: cd infra &&
+      #     terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
+      #     terraform destroy -var-file="env/${{ inputs.environment }}/terraform.tfvars" -auto-approve
 
       - name: Terraform Plan
+        if: steps.read_destroy_configuration.outputs.destroy != 'true'
         id: terraform_plan
         run: cd infra &&
           terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
