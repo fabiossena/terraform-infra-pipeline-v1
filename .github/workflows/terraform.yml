@@ -45,11 +45,11 @@ jobs:
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ inputs.aws-region }}
       
-      # - name: Read destroy configuration
-      #   id: read_destroy_configuration
-      #   run: |
-      #     DESTROY="$(jq -r '.{{ inputs.environment  }}' ./infra/destroy_config.json)"
-      #     echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
+      - name: Read destroy configuration
+        id: read_destroy_configuration
+        run: |
+          DESTROY="$(jq -r '.${{ inputs.environment  }}' ./destroy_config.json)"
+          echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
 
       # - name: Debug backend values
       #   run: |
@@ -67,22 +67,8 @@ jobs:
             -backend-config="dynamodb_table=${{ inputs.aws-lock-dynamodb-table }}"
 
       - name: Terraform Validate
+        if: steps.read_destroy_configuration.outputs.destroy != 'true'
         run: terraform validate
-      
-      # - name: Terraform Destroy
-      #   if: steps.read_destroy_configuration.outputs.destroy == 'true'
-      #    working-directory: infra
-      #   run: cd infra &&
-      #     terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
-      #     terraform destroy -var-file="env/${{ inputs.environment }}/terraform.tfvars" -auto-approve
-
-      # - name: Terraform Workspace
-      #   run: terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
-        
-      # - name: Debug path
-      #   run: |
-      #     pwd
-      #     ls -R
 
       - name: Create tfvars
         working-directory: infra
@@ -91,9 +77,20 @@ jobs:
           cat <<EOF > env/${{ inputs.environment }}/terraform.tfvars
           bucket_name = "${{ inputs.environment }}-fabiossena-us-east-1-buildrun-pipeline"
           EOF
+      
+      - name: Terraform Destroy
+        if: steps.read_destroy_configuration.outputs.destroy == 'true'
+        run:
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
+          terraform destroy -var-file="env/${{ inputs.environment }}/terraform.tfvars" -auto-approve
+
+      # - name: Debug path
+      #   run: |
+      #     pwd
+      #     ls -R
                             
-        # if: steps.read_destroy_configuration.outputs.destroy != 'true'
       - name: Terraform Plan
+        if: steps.read_destroy_configuration.outputs.destroy != 'true'
         run: |
           terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
           terraform plan \
@@ -103,6 +100,7 @@ jobs:
             -out="${{ inputs.environment }}.plan"
 
       - name: Terraform Apply
+        if: steps.read_destroy_configuration.outputs.destroy != 'true'
         run:
           terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
           terraform apply "${{ inputs.environment }}.plan"
