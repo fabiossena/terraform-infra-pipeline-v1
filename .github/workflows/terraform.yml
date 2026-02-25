@@ -82,7 +82,7 @@ jobs:
       - name: Debug path
         run: |
           pwd
-          ls -R env
+          ls -R
                   
         # if: steps.read_destroy_configuration.outputs.destroy != 'true'
       - name: Terraform Plan
