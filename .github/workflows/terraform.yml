@@ -50,11 +50,11 @@ jobs:
       #     DESTROY="$(jq -r '.{{ inputs.environment  }}' ./infra/destroy_config.json)"
       #     echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
 
-      - name: Debug backend values
-        run: |
-          echo "Bucket: ${{ inputs.aws-s3-bucket-statefile-s3-bucket }}"
-          echo "Region: ${{ inputs.aws-region }}"
-          echo "DynamoDB: ${{ inputs.aws-lock-dynamodb-table }}"
+      # - name: Debug backend values
+      #   run: |
+      #     echo "Bucket: ${{ inputs.aws-s3-bucket-statefile-s3-bucket }}"
+      #     echo "Region: ${{ inputs.aws-region }}"
+      #     echo "DynamoDB: ${{ inputs.aws-lock-dynamodb-table }}"
           
       - name: Terraform Init
         working-directory: infra
@@ -82,7 +82,7 @@ jobs:
         working-directory: infra
         run: 
           terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
-          terraform plan -var-file="infra/envs/${{ inputs.environment }}/terraform.tfvars" -out="{{ inputs.environment }}.plan"
+          terraform plan -var-file="env/${{ inputs.environment }}/terraform.tfvars" -out="${{ inputs.environment }}.plan"
 
       - name: Terraform Apply
         working-directory: infra
