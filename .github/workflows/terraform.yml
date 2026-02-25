@@ -48,7 +48,7 @@ jobs:
       - name: Read destroy configuration
         id: read_destroy_configuration
         run: |
-          DESTROY="$(jq -r '.{{ inputs.environment  }}' ./infra/destroy_config.json)"
+          DESTROY="$(jq -r '.${{ inputs.environment  }}' ./infra/destroy_config.json)"
           echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
 
       # - name: Debug backend values
