@@ -89,7 +89,7 @@ jobs:
         run: |
           mkdir -p env/${{ inputs.environment }}
           cat <<EOF > env/${{ inputs.environment }}/terraform.tfvars
-          bucket_name = "dev-us-east-1-buildrun-pipeline"
+          bucket_name = "${{ inputs.environment }}-fabiossena-us-east-1-buildrun-pipeline"
           EOF
                             
         # if: steps.read_destroy_configuration.outputs.destroy != 'true'
