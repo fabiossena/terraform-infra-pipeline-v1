@@ -50,6 +50,12 @@ jobs:
       #     DESTROY="$(jq -r '.{{ inputs.environment  }}' ./infra/destroy_config.json)"
       #     echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
 
+      - name: Debug backend values
+        run: |
+          echo "Bucket: ${{ inputs.aws-s3-bucket-statefile-s3-bucket }}"
+          echo "Region: ${{ inputs.aws-region }}"
+          echo "DynamoDB: ${{ inputs.aws-lock-dynamodb-table }}"
+          
       - name: Terraform Init
         run: |
           cd infra && terraform init
