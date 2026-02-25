@@ -58,7 +58,6 @@ jobs:
       #     echo "DynamoDB: ${{ inputs.aws-lock-dynamodb-table }}"
           
       - name: Terraform Init
-        if: steps.read_destroy_configuration.outputs.destroy != 'true'
         run: |
           terraform init \
             -input=false \
@@ -77,9 +76,6 @@ jobs:
           terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
           terraform destroy -var-file="env/${{ inputs.environment }}/terraform.tfvars" -auto-approve
 
-      # - name: Terraform Workspace
-      #   run: terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
-        
       # - name: Debug path
       #   run: |
       #     pwd
