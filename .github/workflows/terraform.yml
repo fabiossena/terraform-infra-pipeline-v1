@@ -76,13 +76,16 @@ jobs:
       #     terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
       #     terraform destroy -var-file="env/${{ inputs.environment }}/terraform.tfvars" -auto-approve
 
+        # if: steps.read_destroy_configuration.outputs.destroy != 'true'
       - name: Terraform Plan
-        if: steps.read_destroy_configuration.outputs.destroy != 'true'
-        id: terraform_plan
         working-directory: infra
-        run: 
-          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
-          terraform plan -var-file="env/${{ inputs.environment }}/terraform.tfvars" -out="${{ inputs.environment }}.plan"
+        run: |
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
+          terraform plan \
+            -input=false \
+            -no-color \
+            -var-file="env/${{ inputs.environment }}/terraform.tfvars" \
+            -out="${{ inputs.environment }}.plan"
 
       - name: Terraform Apply
         working-directory: infra
