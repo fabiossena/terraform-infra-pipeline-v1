@@ -57,8 +57,9 @@ jobs:
           echo "DynamoDB: ${{ inputs.aws-lock-dynamodb-table }}"
           
       - name: Terraform Init
+        working-directory: infra
         run: |
-          cd infra && terraform init
+          terraform init \
             -input=false \
             -backend-config="bucket=${{ inputs.aws-s3-bucket-statefile-s3-bucket }}" \
             -backend-config="key=${{ github.event.repository.name }}" \
@@ -70,6 +71,7 @@ jobs:
       
       # - name: Terraform Destroy
       #   if: steps.read_destroy_configuration.outputs.destroy == 'true'
+      #    working-directory: infra
       #   run: cd infra &&
       #     terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
       #     terraform destroy -var-file="env/${{ inputs.environment }}/terraform.tfvars" -auto-approve
@@ -77,12 +79,14 @@ jobs:
       - name: Terraform Plan
         if: steps.read_destroy_configuration.outputs.destroy != 'true'
         id: terraform_plan
-        run: cd infra &&
+        working-directory: infra
+        run: 
           terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
           terraform plan -var-file="env/${{ inputs.environment }}/terraform.tfvars" -out="{{ inputs.environment }}.plan"
 
       - name: Terraform Apply
-        run: cd infra &&
+        working-directory: infra
+        run:
           terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
           terraform apply "{{ inputs.environment }}.plan"
 
