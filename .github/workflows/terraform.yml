@@ -79,11 +79,19 @@ jobs:
       # - name: Terraform Workspace
       #   run: terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
         
-      - name: Debug path
+      # - name: Debug path
+      #   run: |
+      #     pwd
+      #     ls -R
+      
+      - name: Create tfvars
+        working-directory: infra
         run: |
-          pwd
-          ls -R
-                  
+          mkdir -p env/${{ inputs.environment }}
+          cat <<EOF > env/${{ inputs.environment }}/terraform.tfvars
+          bucket_name = "dev-us-east-1-buildrun-pipeline"
+          EOF
+                            
         # if: steps.read_destroy_configuration.outputs.destroy != 'true'
       - name: Terraform Plan
         run: |
